@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OKR Tree — Design to Agile Execution</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --obj: #dbeafe;
+  --obj-border: #93bbf3;
+  --obj-text: #1a3f6f;
+  --kr: #fef3c7;
+  --kr-border: #f5d06b;
+  --kr-text: #6b4a0a;
+  --sol: #dcfce7;
+  --sol-border: #86d9a0;
+  --sol-text: #1a5c2e;
+  --section-bg: #111827;
+  --section-text: #f9fafb;
+  --line: #c4c8cf;
+  --bg: #f8f9fb;
+  --card-radius: 10px;
+  --comment-bg: #f3f0ff;
+  --comment-border: #c4b5fd;
+  --comment-text: #4c1d95;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: #1f2937;
+  padding: 48px 40px 60px;
+  min-width: 1200px;
+}
+
+.page-header { text-align: center; margin-bottom: 48px; }
+.page-header h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; color: #111827; margin-bottom: 8px; }
+.page-header p { font-size: 14px; color: #6b7280; letter-spacing: 0.2px; }
+
+.toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.toolbar button {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 16px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.toolbar button:hover { background: #f3f4f6; border-color: #9ca3af; }
+.toolbar button.active { background: #111827; color: white; border-color: #111827; }
+.toolbar .btn-export { background: #059669; color: white; border-color: #059669; }
+.toolbar .btn-export:hover { background: #047857; }
+.toolbar .btn-save { background: #f59e0b; color: white; border-color: #f59e0b; font-weight: 600; }
+.toolbar .btn-save:hover { background: #d97706; }
+.toolbar .btn-add-section { background: #3b82f6; color: white; border-color: #3b82f6; }
+.toolbar .btn-add-section:hover { background: #2563eb; }
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 16px;
+}
+
+.legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 500; color: #6b7280; }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+.section { margin-bottom: 40px; position: relative; }
+
+.section-header {
+  background: var(--section-bg);
+  color: var(--section-text);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-header .section-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.section:hover .section-header .section-actions { opacity: 1; }
+
+.section-actions button {
+  font-family: inherit;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.3);
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.section-actions button:hover { background: rgba(255,255,255,0.15); }
+
+.okr-row {
+  display: grid;
+  grid-template-columns: 240px 40px 280px 40px 1fr;
+  align-items: stretch;
+  margin-bottom: 14px;
+  min-height: 90px;
+  position: relative;
+}
+
+.okr-row .row-actions {
+  position: absolute;
+  left: -32px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.okr-row:hover .row-actions { opacity: 1; }
+
+.row-actions button {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.row-actions button:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+
+.card {
+  border-radius: var(--card-radius);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  transition: transform 0.15s ease, box-shadow 0.15s;
+  position: relative;
+}
+
+.card:hover { transform: translateY(-1px); }
+
+.card-obj { background: var(--obj); border-color: var(--obj-border); color: var(--obj-text); font-weight: 600; font-size: 13px; }
+.card-kr { background: var(--kr); border-color: var(--kr-border); color: var(--kr-text); font-size: 12.5px; }
+.card-kr .kr-label { font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.7; display: block; margin-bottom: 3px; }
+
+.solutions-col { display: flex; flex-direction: column; gap: 6px; }
+
+.card-sol { background: var(--sol); border-color: var(--sol-border); color: var(--sol-text); font-size: 12px; flex: 1; min-height: 0; padding: 8px 12px; flex-wrap: wrap; }
+.card-sol .sol-content { display: flex; align-items: center; width: 100%; }
+.card-sol .sol-num { font-weight: 600; font-size: 10px; opacity: 0.6; margin-right: 5px; }
+.persona-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; width: 100%; }
+.persona-tag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(0,0,0,0.07);
+  color: var(--sol-text);
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.persona-tag:hover { background: rgba(0,0,0,0.13); }
+.persona-tag[data-p="PM"] { background: #dbeafe; color: #1e40af; }
+.persona-tag[data-p="Dev"] { background: #fce7f3; color: #9d174d; }
+.persona-tag[data-p="QA"] { background: #fef3c7; color: #92400e; }
+.persona-tag[data-p="Design"] { background: #ede9fe; color: #5b21b6; }
+.persona-tag[data-p="Tech Lead"] { background: #f0fdf4; color: #166534; }
+.persona-tag[data-p="Stakeholder"] { background: #f1f5f9; color: #475569; }
+.add-persona-btn {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px dashed rgba(0,0,0,0.2);
+  background: transparent;
+  color: var(--sol-text);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  font-family: inherit;
+}
+.card-sol:hover .add-persona-btn { opacity: 1; }
+.add-persona-btn:hover { background: rgba(0,0,0,0.05); }
+.persona-picker {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  padding: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  z-index: 50;
+  min-width: 180px;
+  margin-bottom: 4px;
+}
+.persona-picker-item {
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.persona-picker-item:hover { background: #f3f4f6; }
+.persona-picker-item.selected { background: #111827; color: white; border-color: #111827; }
+
+.connector { display: flex; align-items: center; justify-content: center; position: relative; }
+.conn-line { position: absolute; background: var(--line); }
+.conn-h { width: 100%; height: 1.5px; top: 50%; transform: translateY(-50%); }
+
+.connector-fan { position: relative; }
+
+.dot-start, .dot-end { width: 6px; height: 6px; border-radius: 50%; background: var(--line); position: absolute; }
+.dot-start { left: 0; top: 50%; transform: translateY(-50%); }
+.conn-arrow { position: absolute; right: -1px; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid var(--line); }
+
+.obj-number {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--obj-text); color: white;
+  font-size: 10px; font-weight: 600;
+  margin-right: 8px; flex-shrink: 0;
+}
+
+/* Editable */
+.editable { cursor: text; outline: none; min-width: 40px; }
+.editable:focus { box-shadow: 0 0 0 2px rgba(59,130,246,0.5); border-radius: 3px; }
+.editable:empty::before { content: attr(data-placeholder); opacity: 0.4; }
+
+/* Comment system */
+.comment-icon {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--comment-bg);
+  border: 1.5px solid var(--comment-border);
+  color: var(--comment-text);
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 2;
+}
+.card:hover .comment-icon { opacity: 1; }
+.comment-icon.has-comments { opacity: 1; background: #8b5cf6; color: white; border-color: #7c3aed; }
+.comment-icon:hover { transform: scale(1.15); }
+
+.comment-panel {
+  position: absolute;
+  top: 100%;
+  left: 20px;
+  width: 320px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  z-index: 100;
+  margin-top: 8px;
+  overflow: hidden;
+  display: none;
+}
+.comment-panel.open { display: block; }
+
+.comment-panel-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comment-panel-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+}
+.comment-panel-close:hover { color: #374151; }
+
+.comment-list {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px 14px;
+}
+
+.comment-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f9fafb;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #374151;
+}
+.comment-item:last-child { border-bottom: none; }
+
+.comment-meta {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.comment-delete {
+  background: none;
+  border: none;
+  color: #d1d5db;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 2px;
+}
+.comment-delete:hover { color: #ef4444; }
+
+.comment-input-row {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.comment-input {
+  flex: 1;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  outline: none;
+  resize: none;
+  min-height: 32px;
+}
+.comment-input:focus { border-color: #8b5cf6; box-shadow: 0 0 0 2px rgba(139,92,246,0.15); }
+
+.comment-submit {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  background: #8b5cf6;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.comment-submit:hover { background: #7c3aed; }
+
+/* Add solution button */
+.add-sol-btn {
+  border: 1.5px dashed var(--sol-border);
+  border-radius: var(--card-radius);
+  background: transparent;
+  color: var(--sol-text);
+  font-family: inherit;
+  font-size: 11px;
+  padding: 6px 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  text-align: center;
+}
+.solutions-col:hover .add-sol-btn { opacity: 1; }
+.add-sol-btn:hover { background: var(--sol); }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #111827;
+  color: white;
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  padding: 28px;
+  width: 500px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.modal h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #111827; }
+
+.modal label { display: block; font-size: 12px; font-weight: 500; color: #6b7280; margin-bottom: 4px; margin-top: 12px; }
+
+.modal input, .modal textarea {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  width: 100%;
+  outline: none;
+}
+.modal input:focus, .modal textarea:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.15); }
+.modal textarea { resize: vertical; min-height: 60px; }
+
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+.modal-actions button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+}
+.modal-actions button:hover { background: #f9fafb; }
+.modal-actions .btn-primary { background: #3b82f6; color: white; border-color: #3b82f6; }
+.modal-actions .btn-primary:hover { background: #2563eb; }
+
+/* Markdown export modal */
+.md-preview {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  color: #374151;
+}
+
+@media print {
+  body { padding: 20px; }
+  .card:hover { transform: none; }
+  .toolbar, .comment-icon, .row-actions, .section-actions, .add-sol-btn, .toast { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>OKR tree — Design to Agile execution pain points</h1>
+  <p>9 objectives mapped to key results and actionable solutions for enterprise communications</p>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--obj);border:1px solid var(--obj-border)"></div>Objective</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--kr);border:1px solid var(--kr-border)"></div>Key result</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--sol);border:1px solid var(--sol-border)"></div>Solution</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--comment-bg);border:1px solid var(--comment-border)"></div>Comment</div>
+  </div>
+  <div class="toolbar">
+    <button class="btn-save" onclick="saveMemory()">&#128190; Save to memory.md</button>
+    <button class="btn-add-section" onclick="openAddSectionModal()">+ Add section</button>
+    <button onclick="exportWithComments()">&#8595; Export with comments</button>
+    <button id="toggleCommentsBtn" onclick="toggleAllComments()">Show all comments</button>
+  </div>
+</div>
+
+<div id="app"></div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<script>
+const PERSONA_LIST = ["PM", "Dev", "QA", "Design", "Tech Lead", "Stakeholder"];
+
+const DEFAULT_DATA = [
+  {
+    section: "Sprint planning & scoping",
+    items: [
+      { obj: "Break down stories faster", kr: "Decrease time sign-off time to sprint-ready stories", s: [
+        { text: "Standard story-splitting template", personas: ["PM", "Tech Lead"] },
+        { text: "Design + dev breakdown workshop (meeting)", personas: ["PM", "Design", "Dev"] },
+        { text: "AI generated stories from design specs", personas: ["PM", "Design"] },
+        { text: "AI auto-splits epics into stories from design files", personas: ["PM", "Design"] },
+      ]},
+      { obj: "Match dev output to design intent", kr: "60% fewer design-rework tickets per quarter", s: [
+        { text: "Handoff specs with edge-case notes", personas: ["Design", "Dev"] },
+        { text: "Shared checklist before sprint entry", personas: ["Design", "Dev", "PM"] },
+        { text: "Mid-sprint design or demo check-ins", personas: ["Design", "Dev"] },
+        { text: "AI matching between deliverable and design spec and flag mismatches", personas: ["Dev", "Design", "QA"] },
+      ]},
+      { obj: "Write clear acceptance criteria", kr: "100% of stories have QA-reviewed testable AC", s: [
+        { text: "QA signs off AC in refinement", personas: ["QA", "PM"] },
+        { text: "AI drafts AC from story description + design spec", personas: ["PM", "QA"] },
+      ]},
+      { obj: "Speed up refinement meetings", kr: "Improve Refinement/Grooming meetings efficiency", s: [
+        { text: "Clear agenda and review of task by all team members before the meeting", personas: ["PM", "Dev", "QA"] },
+        { text: "AI flagging of potential problems before refinement", personas: ["PM", "Tech Lead"] },
+      ]},
+    ],
+  },
+  {
+    section: "Execution & delivery risks",
+    items: [
+      { obj: "Find dependencies early", kr: "Zero stories blocked by surprise dependencies", s: [
+        { text: "API + vendor readiness tracker", personas: ["Tech Lead", "PM"] },
+        { text: "AI scans stories and maps dependencies", personas: ["Tech Lead", "Dev"] },
+        { text: "AI alerts for potential 3rd party dependency \u2013 missing capability, subscriptions & offering, etc.", personas: ["Tech Lead", "PM"] },
+      ]},
+      { obj: "Estimate more accurately", kr: "Improve estimation accuracy", s: [
+        { text: "Create estimation index as benchmark", personas: ["Tech Lead", "Dev"] },
+        { text: "Quarterly estimation retros", personas: ["PM", "Tech Lead", "Dev"] },
+        { text: "AI suggests estimates based on similar past stories", personas: ["PM", "Dev", "Tech Lead"] },
+      ]},
+      { obj: "Keep sprint goals on track", kr: "Increase sprint goal completion", s: [
+        { text: "AI estimator for intake showing trade-offs for unexpected tasks", personas: ["PM", "Tech Lead"] },
+        { text: "AI shows impact analysis when new work enters sprint", personas: ["PM", "Tech Lead"] },
+      ]},
+    ],
+  },
+  {
+    section: "Definition of done & release",
+    items: [
+      { obj: "Act on demo feedback quickly", kr: "All demo feedback triaged within one sprint", s: [
+        { text: "Recorded demos + async summaries", personas: ["PM", "Stakeholder"] },
+        { text: "AI auto-summarizes demo recordings with action items, time estimator, and summary", personas: ["PM", "Stakeholder", "Dev"] },
+      ]},
+      { obj: "Smooth out releases", kr: "Near-zero blockers on release day", s: [
+        { text: "AI assistant for release checklist (code, content, training, deployment)", personas: ["Tech Lead", "Dev", "PM"] },
+        { text: "AI validates release readiness across all checklist items", personas: ["Tech Lead", "Dev", "PM"] },
+      ]},
+    ],
+  },
+];
+
+const DATA_VERSION = 5;
+const storedVersion = parseInt(localStorage.getItem('okr-data-version') || '0');
+let DATA;
+if (storedVersion < DATA_VERSION) {
+  DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  localStorage.setItem('okr-data-version', DATA_VERSION);
+  localStorage.setItem('okr-data', JSON.stringify(DATA));
+} else {
+  DATA = JSON.parse(localStorage.getItem('okr-data')) || JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+let COMMENTS = JSON.parse(localStorage.getItem('okr-comments')) || {};
+
+function save() {
+  localStorage.setItem('okr-data', JSON.stringify(DATA));
+  localStorage.setItem('okr-comments', JSON.stringify(COMMENTS));
+  localStorage.setItem('okr-data-version', DATA_VERSION);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function commentKey(secIdx, itemIdx, field) {
+  return `${secIdx}-${itemIdx}-${field}`;
+}
+
+function getComments(key) { return COMMENTS[key] || []; }
+
+function addComment(key, text) {
+  if (!COMMENTS[key]) COMMENTS[key] = [];
+  COMMENTS[key].push({ text, time: new Date().toLocaleString() });
+  save();
+}
+
+function deleteComment(key, idx) {
+  if (COMMENTS[key]) {
+    COMMENTS[key].splice(idx, 1);
+    if (COMMENTS[key].length === 0) delete COMMENTS[key];
+    save();
+  }
+}
+
+function buildCommentIcon(key, parentEl) {
+  const comments = getComments(key);
+  const icon = document.createElement('div');
+  icon.className = 'comment-icon' + (comments.length ? ' has-comments' : '');
+  icon.textContent = comments.length || '\u{1F4AC}';
+  icon.title = 'Comments';
+  icon.onclick = (e) => {
+    e.stopPropagation();
+    toggleCommentPanel(key, parentEl);
+  };
+  parentEl.appendChild(icon);
+}
+
+function toggleCommentPanel(key, parentEl) {
+  document.querySelectorAll('.comment-panel.open').forEach(p => {
+    if (p.dataset.key !== key) p.classList.remove('open');
+  });
+
+  let panel = parentEl.querySelector('.comment-panel');
+  if (panel) {
+    panel.classList.toggle('open');
+    return;
+  }
+
+  panel = document.createElement('div');
+  panel.className = 'comment-panel open';
+  panel.dataset.key = key;
+  panel.onclick = (e) => e.stopPropagation();
+  renderCommentPanel(panel, key, parentEl);
+  parentEl.appendChild(panel);
+}
+
+function renderCommentPanel(panel, key, parentEl) {
+  const comments = getComments(key);
+  panel.innerHTML = `
+    <div class="comment-panel-header">
+      <span>Comments (${comments.length})</span>
+      <button class="comment-panel-close">&times;</button>
+    </div>
+    <div class="comment-list">
+      ${comments.length === 0 ? '<div style="padding:12px 0;text-align:center;color:#9ca3af;font-size:12px">No comments yet</div>' :
+        comments.map((c, i) => `
+          <div class="comment-item">
+            <div>${escHtml(c.text)}</div>
+            <div class="comment-meta">
+              <span>${c.time}</span>
+              <button class="comment-delete" data-idx="${i}" title="Delete">&times;</button>
+            </div>
+          </div>
+        `).join('')}
+    </div>
+    <div class="comment-input-row">
+      <input class="comment-input" placeholder="Add a comment\u2026" />
+      <button class="comment-submit">Post</button>
+    </div>
+  `;
+
+  panel.querySelector('.comment-panel-close').onclick = () => panel.classList.remove('open');
+
+  panel.querySelectorAll('.comment-delete').forEach(btn => {
+    btn.onclick = () => {
+      deleteComment(key, parseInt(btn.dataset.idx));
+      renderCommentPanel(panel, key, parentEl);
+      updateCommentIcon(key, parentEl);
+    };
+  });
+
+  const input = panel.querySelector('.comment-input');
+  const submit = panel.querySelector('.comment-submit');
+
+  const doPost = () => {
+    const text = input.value.trim();
+    if (!text) return;
+    addComment(key, text);
+    renderCommentPanel(panel, key, parentEl);
+    updateCommentIcon(key, parentEl);
+  };
+
+  submit.onclick = doPost;
+  input.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doPost(); } };
+}
+
+function updateCommentIcon(key, parentEl) {
+  const icon = parentEl.querySelector('.comment-icon');
+  if (!icon) return;
+  const comments = getComments(key);
+  icon.className = 'comment-icon' + (comments.length ? ' has-comments' : '');
+  icon.textContent = comments.length || '\u{1F4AC}';
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function normalizeSol(s) {
+  if (typeof s === 'string') return { text: s, personas: [] };
+  return { text: s.text || '', personas: s.personas || [] };
+}
+
+function buildPersonaTags(container, item, sIdx) {
+  container.innerHTML = '';
+  const sol = normalizeSol(item.s[sIdx]);
+  sol.personas.forEach((p, pIdx) => {
+    const tag = document.createElement('span');
+    tag.className = 'persona-tag';
+    tag.setAttribute('data-p', p);
+    tag.textContent = p;
+    tag.title = 'Click to remove';
+    tag.onclick = (e) => {
+      e.stopPropagation();
+      item.s[sIdx] = normalizeSol(item.s[sIdx]);
+      item.s[sIdx].personas.splice(pIdx, 1);
+      save();
+      buildPersonaTags(container, item, sIdx);
+    };
+    container.appendChild(tag);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-persona-btn';
+  addBtn.textContent = '+';
+  addBtn.title = 'Add persona';
+  addBtn.onclick = (e) => {
+    e.stopPropagation();
+    const existing = container.querySelector('.persona-picker');
+    if (existing) { existing.remove(); return; }
+    document.querySelectorAll('.persona-picker').forEach(p => p.remove());
+    const picker = document.createElement('div');
+    picker.className = 'persona-picker';
+    picker.onclick = (ev) => ev.stopPropagation();
+    PERSONA_LIST.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'persona-picker-item';
+      if (sol.personas.includes(p)) btn.classList.add('selected');
+      btn.textContent = p;
+      btn.onclick = (ev) => {
+        ev.stopPropagation();
+        item.s[sIdx] = normalizeSol(item.s[sIdx]);
+        const idx = item.s[sIdx].personas.indexOf(p);
+        if (idx >= 0) item.s[sIdx].personas.splice(idx, 1);
+        else item.s[sIdx].personas.push(p);
+        save();
+        picker.remove();
+        buildPersonaTags(container, item, sIdx);
+      };
+      picker.appendChild(btn);
+    });
+    container.appendChild(picker);
+  };
+  container.appendChild(addBtn);
+}
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  let globalNum = 0;
+
+  DATA.forEach((sec, secIdx) => {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'section';
+
+    const header = document.createElement('div');
+    header.className = 'section-header';
+
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'editable';
+    titleSpan.contentEditable = true;
+    titleSpan.textContent = sec.section;
+    titleSpan.dataset.placeholder = 'Section name';
+    titleSpan.onblur = () => { sec.section = titleSpan.textContent.trim() || sec.section; save(); };
+    titleSpan.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); titleSpan.blur(); } };
+
+    const actions = document.createElement('div');
+    actions.className = 'section-actions';
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = '+ Add OKR';
+    addBtn.onclick = () => openAddOkrModal(secIdx);
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete section';
+    delBtn.onclick = () => {
+      if (confirm(`Delete section "${sec.section}" and all its OKRs?`)) {
+        DATA.splice(secIdx, 1);
+        save();
+        render();
+        toast('Section deleted');
+      }
+    };
+
+    actions.appendChild(addBtn);
+    actions.appendChild(delBtn);
+    header.appendChild(titleSpan);
+    header.appendChild(actions);
+    sectionDiv.appendChild(header);
+
+    sec.items.forEach((item, itemIdx) => {
+      globalNum++;
+      const row = document.createElement('div');
+      row.className = 'okr-row';
+
+      const rowActions = document.createElement('div');
+      rowActions.className = 'row-actions';
+      const deleteRowBtn = document.createElement('button');
+      deleteRowBtn.innerHTML = '&times;';
+      deleteRowBtn.title = 'Delete this OKR';
+      deleteRowBtn.onclick = () => {
+        if (confirm(`Delete objective "${item.obj}"?`)) {
+          sec.items.splice(itemIdx, 1);
+          save();
+          render();
+          toast('OKR deleted');
+        }
+      };
+      rowActions.appendChild(deleteRowBtn);
+      row.appendChild(rowActions);
+
+      const objCard = document.createElement('div');
+      objCard.className = 'card card-obj';
+      objCard.style.position = 'relative';
+      objCard.innerHTML = `<span class="obj-number">${globalNum}</span>`;
+      const objText = document.createElement('span');
+      objText.className = 'editable';
+      objText.contentEditable = true;
+      objText.textContent = item.obj;
+      objText.dataset.placeholder = 'Objective';
+      objText.onblur = () => { item.obj = objText.textContent.trim() || item.obj; save(); };
+      objText.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); objText.blur(); } };
+      objCard.appendChild(objText);
+      buildCommentIcon(commentKey(secIdx, itemIdx, 'obj'), objCard);
+
+      const conn1 = document.createElement('div');
+      conn1.className = 'connector';
+
+      const krCard = document.createElement('div');
+      krCard.className = 'card card-kr';
+      krCard.style.position = 'relative';
+      const krInner = document.createElement('div');
+      krInner.innerHTML = '<span class="kr-label">Key result</span>';
+      const krText = document.createElement('span');
+      krText.className = 'editable';
+      krText.contentEditable = true;
+      krText.textContent = item.kr;
+      krText.dataset.placeholder = 'Key result';
+      krText.onblur = () => { item.kr = krText.textContent.trim() || item.kr; save(); };
+      krText.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); krText.blur(); } };
+      krInner.appendChild(krText);
+      krCard.appendChild(krInner);
+      buildCommentIcon(commentKey(secIdx, itemIdx, 'kr'), krCard);
+
+      const conn2 = document.createElement('div');
+      conn2.className = 'connector-fan';
+
+      const solCol = document.createElement('div');
+      solCol.className = 'solutions-col';
+      item.s.forEach((solObj, sIdx) => {
+        const sol = normalizeSol(solObj);
+        const solCard = document.createElement('div');
+        solCard.className = 'card card-sol';
+        solCard.style.position = 'relative';
+        solCard.style.flexDirection = 'column';
+        solCard.style.alignItems = 'flex-start';
+
+        const contentRow = document.createElement('div');
+        contentRow.className = 'sol-content';
+        contentRow.innerHTML = `<span class="sol-num">S${sIdx + 1}</span>`;
+        const solText = document.createElement('span');
+        solText.className = 'editable';
+        solText.contentEditable = true;
+        solText.textContent = sol.text;
+        solText.dataset.placeholder = 'Solution';
+        solText.onblur = () => { item.s[sIdx] = normalizeSol(item.s[sIdx]); item.s[sIdx].text = solText.textContent.trim() || sol.text; save(); };
+        solText.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); solText.blur(); } };
+        contentRow.appendChild(solText);
+        solCard.appendChild(contentRow);
+
+        const personaRow = document.createElement('div');
+        personaRow.className = 'persona-row';
+        buildPersonaTags(personaRow, item, sIdx);
+        solCard.appendChild(personaRow);
+
+        buildCommentIcon(commentKey(secIdx, itemIdx, `s${sIdx}`), solCard);
+
+        const delSolBtn = document.createElement('button');
+        delSolBtn.className = 'comment-delete';
+        delSolBtn.style.cssText = 'position:absolute;top:4px;right:4px;opacity:0;font-size:14px;';
+        delSolBtn.innerHTML = '&times;';
+        delSolBtn.title = 'Remove solution';
+        delSolBtn.onclick = (e) => {
+          e.stopPropagation();
+          item.s.splice(sIdx, 1);
+          save();
+          render();
+        };
+        solCard.onmouseenter = () => delSolBtn.style.opacity = '1';
+        solCard.onmouseleave = () => delSolBtn.style.opacity = '0';
+        solCard.appendChild(delSolBtn);
+
+        solCol.appendChild(solCard);
+      });
+
+      const addSolBtn = document.createElement('button');
+      addSolBtn.className = 'add-sol-btn';
+      addSolBtn.textContent = '+ Add solution';
+      addSolBtn.onclick = () => {
+        item.s.push({ text: 'New solution', personas: [] });
+        save();
+        render();
+        toast('Solution added \u2014 click to edit');
+      };
+      solCol.appendChild(addSolBtn);
+
+      row.appendChild(objCard);
+      row.appendChild(conn1);
+      row.appendChild(krCard);
+      row.appendChild(conn2);
+      row.appendChild(solCol);
+      sectionDiv.appendChild(row);
+    });
+
+    app.appendChild(sectionDiv);
+  });
+
+  requestAnimationFrame(updateConnectors);
+}
+
+function openModal(html) {
+  const overlay = document.getElementById('modalOverlay');
+  document.getElementById('modalContent').innerHTML = html;
+  overlay.classList.add('open');
+  overlay.onclick = (e) => { if (e.target === overlay) closeModal(); };
+  setTimeout(() => { const first = overlay.querySelector('input,textarea'); if (first) first.focus(); }, 100);
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+function openAddSectionModal() {
+  openModal(`
+    <h3>Add new section</h3>
+    <label>Section name</label>
+    <input id="newSectionName" placeholder="e.g. Team growth & hiring" />
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="doAddSection()">Add section</button>
+    </div>
+  `);
+}
+
+function doAddSection() {
+  const name = document.getElementById('newSectionName').value.trim();
+  if (!name) return;
+  DATA.push({ section: name, items: [] });
+  save();
+  render();
+  closeModal();
+  toast('Section added');
+}
+
+function openAddOkrModal(secIdx) {
+  openModal(`
+    <h3>Add OKR to "${escHtml(DATA[secIdx].section)}"</h3>
+    <label>Objective</label>
+    <input id="newObj" placeholder="What do you want to achieve?" />
+    <label>Key Result</label>
+    <input id="newKr" placeholder="How will you measure it?" />
+    <label>Solutions (one per line)</label>
+    <textarea id="newSols" placeholder="Solution 1\nSolution 2\nSolution 3" rows="4"></textarea>
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="doAddOkr(${secIdx})">Add OKR</button>
+    </div>
+  `);
+}
+
+function doAddOkr(secIdx) {
+  const obj = document.getElementById('newObj').value.trim();
+  const kr = document.getElementById('newKr').value.trim();
+  const sols = document.getElementById('newSols').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (!obj || !kr) return toast('Objective and Key Result are required');
+  if (sols.length === 0) sols.push('Define solution');
+  DATA[secIdx].items.push({ obj, kr, s: sols.map(t => ({ text: t, personas: [] })) });
+  save();
+  render();
+  closeModal();
+  toast('OKR added');
+}
+
+function toggleAllComments() {
+  const panels = document.querySelectorAll('.comment-panel');
+  const anyOpen = Array.from(panels).some(p => p.classList.contains('open'));
+  const btn = document.getElementById('toggleCommentsBtn');
+
+  if (anyOpen) {
+    panels.forEach(p => p.classList.remove('open'));
+    btn.textContent = 'Show all comments';
+  } else {
+    Object.keys(COMMENTS).forEach(key => {
+      if (COMMENTS[key].length === 0) return;
+      const icon = document.querySelector(`.comment-icon.has-comments`);
+      if (icon) {
+        const card = icon.parentElement;
+        let panel = card.querySelector('.comment-panel');
+        if (!panel) {
+          panel = document.createElement('div');
+          panel.className = 'comment-panel open';
+          panel.dataset.key = key;
+          panel.onclick = (e) => e.stopPropagation();
+          renderCommentPanel(panel, key, card);
+          card.appendChild(panel);
+        } else {
+          panel.classList.add('open');
+        }
+      }
+    });
+    btn.textContent = 'Hide all comments';
+  }
+}
+
+function generateMarkdown(includeComments) {
+  let md = '# OKR Tree \u2014 Design to Agile Execution Pain Points\n\n';
+  md += '> 14 objectives mapped to key results and actionable solutions for enterprise communications\n\n';
+  md += '**Legend:** \ud83d\udd35 Objective \u00b7 \ud83d\udfe1 Key Result \u00b7 \ud83d\udfe2 Solution\n\n---\n\n';
+
+  let globalNum = 0;
+  DATA.forEach((sec, secIdx) => {
+    md += `## ${secIdx + 1}. ${sec.section}\n\n`;
+
+    sec.items.forEach((item, itemIdx) => {
+      globalNum++;
+      md += `### Objective ${globalNum}: ${item.obj}\n\n`;
+
+      if (includeComments) {
+        const objComments = getComments(commentKey(secIdx, itemIdx, 'obj'));
+        if (objComments.length) {
+          objComments.forEach(c => { md += `> **Comment** (${c.time}): ${c.text}\n\n`; });
+        }
+      }
+
+      md += `**Key Result:** ${item.kr}\n\n`;
+
+      if (includeComments) {
+        const krComments = getComments(commentKey(secIdx, itemIdx, 'kr'));
+        if (krComments.length) {
+          krComments.forEach(c => { md += `> **Comment** (${c.time}): ${c.text}\n\n`; });
+        }
+      }
+
+      md += '| # | Solution | Personas |\n|---|----------|----------|\n';
+      item.s.forEach((solObj, sIdx) => {
+        const sol = normalizeSol(solObj);
+        const personas = sol.personas.length ? sol.personas.join(', ') : '\u2014';
+        md += `| S${sIdx + 1} | ${sol.text} | ${personas} |\n`;
+        if (includeComments) {
+          const solComments = getComments(commentKey(secIdx, itemIdx, `s${sIdx}`));
+          if (solComments.length) {
+            solComments.forEach(c => { md += `\n> **Comment on S${sIdx + 1}** (${c.time}): ${c.text}\n`; });
+          }
+        }
+      });
+      md += '\n---\n\n';
+    });
+  });
+
+  return md.trimEnd() + '\n';
+}
+
+function saveMemory() {
+  const md = generateMarkdown(false);
+  downloadFile('memory.md', md);
+  toast('memory.md saved — replace the file in your project folder');
+}
+
+function exportWithComments() {
+  const md = generateMarkdown(true);
+  downloadFile('memory_with_comments.md', md);
+  toast('memory_with_comments.md downloaded');
+}
+
+function downloadFile(filename, content) {
+  const blob = new Blob([content], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function updateConnectors() {
+  document.querySelectorAll('.okr-row').forEach(row => {
+    const objCard = row.querySelector('.card-obj');
+    const conn1 = row.querySelector('.connector');
+    const krCard = row.querySelector('.card-kr');
+    const fan = row.querySelector('.connector-fan');
+    const solCol = row.querySelector('.solutions-col');
+    if (!conn1 || !fan || !solCol || !objCard || !krCard) return;
+
+    const conn1Rect = conn1.getBoundingClientRect();
+    const objRect = objCard.getBoundingClientRect();
+    const objCenterY = objRect.top + objRect.height / 2 - conn1Rect.top;
+
+    conn1.innerHTML = '';
+    const line1 = document.createElement('div');
+    line1.style.cssText = `position:absolute;left:0;top:${objCenterY}px;width:100%;height:1.5px;background:var(--line);transform:translateY(-50%)`;
+    const dot = document.createElement('div');
+    dot.style.cssText = `position:absolute;left:0;top:${objCenterY}px;width:6px;height:6px;border-radius:50%;background:var(--line);transform:translateY(-50%)`;
+    const arrow = document.createElement('div');
+    arrow.style.cssText = `position:absolute;right:-1px;top:${objCenterY}px;transform:translateY(-50%);width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid var(--line)`;
+    conn1.appendChild(line1);
+    conn1.appendChild(dot);
+    conn1.appendChild(arrow);
+
+    const cards = solCol.querySelectorAll('.card-sol');
+    if (cards.length === 0) return;
+
+    fan.innerHTML = '';
+    const fanRect = fan.getBoundingClientRect();
+    const krRect = krCard.getBoundingClientRect();
+    const trunkY = krRect.top + krRect.height / 2 - fanRect.top;
+
+    const trunk = document.createElement('div');
+    trunk.style.cssText = `position:absolute;left:0;top:${trunkY}px;width:${cards.length === 1 ? 100 : 50}%;height:1.5px;background:var(--line);transform:translateY(-50%)`;
+    fan.appendChild(trunk);
+
+    const branchYs = [];
+    cards.forEach(card => {
+      const cardRect = card.getBoundingClientRect();
+      const y = cardRect.top + cardRect.height / 2 - fanRect.top;
+      branchYs.push(y);
+      const branch = document.createElement('div');
+      branch.style.cssText = `position:absolute;right:0;top:${y}px;width:50%;height:1.5px;background:var(--line);transform:translateY(-50%)`;
+      fan.appendChild(branch);
+    });
+
+    if (branchYs.length > 1) {
+      const allYs = [trunkY, ...branchYs];
+      const minY = Math.min(...allYs);
+      const maxY = Math.max(...allYs);
+      const vLine = document.createElement('div');
+      vLine.style.cssText = `position:absolute;left:50%;top:${minY}px;height:${maxY - minY}px;width:1.5px;background:var(--line);transform:translateX(-50%)`;
+      fan.appendChild(vLine);
+    }
+  });
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.comment-panel.open').forEach(p => p.classList.remove('open'));
+});
+
+render();
+requestAnimationFrame(updateConnectors);
+window.addEventListener('resize', updateConnectors);
+</script>
+</body>
+</html>
