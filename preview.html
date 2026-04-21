@@ -267,6 +267,9 @@ body {
 .editable { cursor: text; outline: none; min-width: 40px; }
 .editable:focus { box-shadow: 0 0 0 2px rgba(59,130,246,0.5); border-radius: 3px; }
 .editable:empty::before { content: attr(data-placeholder); opacity: 0.4; }
+.section-header .editable { cursor: text; border-bottom: 1px dashed rgba(255,255,255,0.3); padding-bottom: 1px; }
+.section-header .editable:hover { border-bottom-color: rgba(255,255,255,0.6); }
+.section-header .editable:focus { box-shadow: 0 0 0 2px rgba(255,255,255,0.4); border-radius: 3px; border-bottom-color: transparent; }
 
 /* Comment system */
 .comment-icon {
