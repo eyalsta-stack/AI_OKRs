@@ -1118,10 +1118,76 @@ function generateMarkdown(includeComments) {
   return md.trimEnd() + '\n';
 }
 
-function saveMemory() {
+const GITHUB_REPO = 'eyalsta-stack/AI_OKRs';
+const GITHUB_FILE = 'memory.md';
+
+function getGitHubToken() {
+  return localStorage.getItem('gh-token') || null;
+}
+
+function promptForToken() {
+  openModal(`
+    <h3>Connect to GitHub</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:8px">To save directly to the repo, enter a GitHub Personal Access Token with <strong>repo</strong> scope.</p>
+    <p style="font-size:11px;color:#9ca3af;margin-bottom:12px">Create one at <a href="https://github.com/settings/tokens/new?scopes=repo&description=OKR+Tree+Editor" target="_blank" style="color:#3b82f6">github.com/settings/tokens</a></p>
+    <label>Personal Access Token</label>
+    <input id="ghTokenInput" type="password" placeholder="ghp_xxxxxxxxxxxx" />
+    <div class="modal-actions">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveToken()">Save &amp; connect</button>
+    </div>
+  `);
+}
+
+function saveToken() {
+  const token = document.getElementById('ghTokenInput').value.trim();
+  if (!token) return;
+  localStorage.setItem('gh-token', token);
+  closeModal();
+  toast('Token saved');
+  saveMemory();
+}
+
+async function saveMemory() {
+  const token = getGitHubToken();
+  if (!token) { promptForToken(); return; }
+
   const md = generateMarkdown(false);
-  downloadFile('memory.md', md);
-  toast('memory.md saved — replace the file in your project folder');
+  const saveBtn = document.querySelector('.btn-save');
+  const origText = saveBtn.textContent;
+  saveBtn.textContent = 'Saving\u2026';
+  saveBtn.disabled = true;
+
+  try {
+    const headers = { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' };
+    const getResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, { headers });
+    if (getResp.status === 401 || getResp.status === 403) {
+      localStorage.removeItem('gh-token');
+      toast('Token expired or invalid \u2014 please re-enter');
+      saveBtn.textContent = origText;
+      saveBtn.disabled = false;
+      promptForToken();
+      return;
+    }
+    const fileData = await getResp.json();
+    const sha = fileData.sha;
+    const encoded = btoa(unescape(encodeURIComponent(md)));
+    const putResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Update memory.md from OKR editor', content: encoded, sha }),
+    });
+    if (putResp.ok) {
+      toast('memory.md committed to GitHub');
+    } else {
+      const err = await putResp.json();
+      toast('Save failed: ' + (err.message || 'unknown error'));
+    }
+  } catch (e) {
+    toast('Network error: ' + e.message);
+  }
+  saveBtn.textContent = origText;
+  saveBtn.disabled = false;
 }
 
 function exportWithComments() {
