@@ -93,7 +93,7 @@
 
 ---
 
-## 3. Definition of done & release
+## 3. Definition of done & release Quality
 
 ### Objective 8: Act on demo feedback quickly
 
