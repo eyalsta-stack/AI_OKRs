@@ -1,12 +1,12 @@
 # OKR Tree — Design to Agile Execution Pain Points
 
-> 9 objectives mapped to key results and actionable solutions for enterprise communications
+> 14 objectives mapped to key results and actionable solutions for enterprise communications
 
 **Legend:** 🔵 Objective · 🟡 Key Result · 🟢 Solution
 
 ---
 
-## 1. Sprint Planning & Scoping
+## 1. Sprint planning & scoping
 
 ### Objective 1: Break down stories faster
 
@@ -56,7 +56,7 @@
 
 ---
 
-## 2. Execution & Delivery Risks
+## 2. Execution & delivery risks
 
 ### Objective 5: Find dependencies early
 
@@ -93,7 +93,7 @@
 
 ---
 
-## 3. Definition of Done & Release
+## 3. Definition of done & release
 
 ### Objective 8: Act on demo feedback quickly
 
@@ -114,3 +114,5 @@
 |---|----------|----------|
 | S1 | AI assistant for release checklist (code, content, training, deployment) | Tech Lead, Dev, PM |
 | S2 | AI validates release readiness across all checklist items | Tech Lead, Dev, PM |
+
+---
