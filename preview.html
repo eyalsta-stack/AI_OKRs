@@ -148,10 +148,10 @@ body {
 .row-actions button {
   width: 24px;
   height: 24px;
-  border-radius: 4px;
-  border: 1px solid #d1d5db;
+  border-radius: 5px;
+  border: 1px solid #e5e7eb;
   background: white;
-  color: #6b7280;
+  color: #9ca3af;
   cursor: pointer;
   font-size: 12px;
   display: flex;
@@ -220,26 +220,24 @@ body {
 .add-persona-btn:hover { background: rgba(0,0,0,0.05); }
 .sol-delete-btn {
   position: absolute;
-  top: 3px;
-  left: -8px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1px solid #fca5a5;
+  top: 4px;
+  left: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
   background: white;
-  color: #dc2626;
-  font-size: 13px;
-  line-height: 1;
+  color: #9ca3af;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s;
+  transition: all 0.15s;
   z-index: 3;
 }
 .card-sol:hover .sol-delete-btn { opacity: 1; }
-.sol-delete-btn:hover { background: #fee2e2; }
+.sol-delete-btn:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
 .persona-picker {
   position: absolute;
   bottom: 100%;
@@ -299,27 +297,27 @@ body {
 /* Comment system */
 .comment-icon {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--comment-bg);
-  border: 1.5px solid var(--comment-border);
-  color: var(--comment-text);
-  font-size: 10px;
-  font-weight: 600;
+  bottom: 4px;
+  right: 6px;
+  width: auto;
+  height: auto;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 12px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 3px;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s, transform 0.15s;
+  transition: opacity 0.15s, color 0.15s;
   z-index: 2;
 }
-.card:hover .comment-icon { opacity: 1; }
-.comment-icon.has-comments { opacity: 1; background: #8b5cf6; color: white; border-color: #7c3aed; }
-.comment-icon:hover { transform: scale(1.15); }
+.card:hover .comment-icon { opacity: 0.7; }
+.comment-icon.has-comments { opacity: 1; color: #7c3aed; }
+.comment-icon:hover { opacity: 1; color: #6d28d9; }
 
 .comment-panel {
   position: absolute;
@@ -679,8 +677,9 @@ function buildCommentIcon(key, parentEl) {
   const comments = getComments(key);
   const icon = document.createElement('div');
   icon.className = 'comment-icon' + (comments.length ? ' has-comments' : '');
-  icon.textContent = comments.length || '\u{1F4AC}';
-  icon.title = 'Comments';
+  const pencilSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+  icon.innerHTML = pencilSvg + (comments.length ? `<span style="font-size:10px;font-weight:600">${comments.length}</span>` : '');
+  icon.title = comments.length ? `${comments.length} note${comments.length > 1 ? 's' : ''}` : 'Add note';
   icon.onclick = (e) => {
     e.stopPropagation();
     toggleCommentPanel(key, parentEl);
@@ -762,7 +761,9 @@ function updateCommentIcon(key, parentEl) {
   if (!icon) return;
   const comments = getComments(key);
   icon.className = 'comment-icon' + (comments.length ? ' has-comments' : '');
-  icon.textContent = comments.length || '\u{1F4AC}';
+  const pencilSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+  icon.innerHTML = pencilSvg + (comments.length ? `<span style="font-size:10px;font-weight:600">${comments.length}</span>` : '');
+  icon.title = comments.length ? `${comments.length} note${comments.length > 1 ? 's' : ''}` : 'Add note';
 }
 
 function escHtml(s) {
@@ -857,7 +858,7 @@ function render() {
     addBtn.onclick = () => openAddOkrModal(secIdx);
 
     const delBtn = document.createElement('button');
-    delBtn.textContent = 'Delete section';
+    delBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete section';
     delBtn.onclick = () => {
       if (confirm(`Delete section "${sec.section}" and all its OKRs?`)) {
         DATA.splice(secIdx, 1);
@@ -881,7 +882,7 @@ function render() {
       const rowActions = document.createElement('div');
       rowActions.className = 'row-actions';
       const deleteRowBtn = document.createElement('button');
-      deleteRowBtn.innerHTML = '&times;';
+      deleteRowBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
       deleteRowBtn.title = 'Delete this OKR';
       deleteRowBtn.onclick = () => {
         if (confirm(`Delete objective "${item.obj}"?`)) {
@@ -962,7 +963,7 @@ function render() {
 
         const delSolBtn = document.createElement('button');
         delSolBtn.className = 'sol-delete-btn';
-        delSolBtn.innerHTML = '&times;';
+        delSolBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
         delSolBtn.title = 'Remove solution';
         delSolBtn.onclick = (e) => {
           e.stopPropagation();
