@@ -159,8 +159,37 @@ body {
   text-align: left;
   transition: background 0.1s;
 }
-.remove-okr-dropdown .dropdown-item:hover { background: #fee2e2; color: #dc2626; }
-.remove-okr-dropdown .dropdown-item svg { flex-shrink: 0; }
+.remove-okr-dropdown .dropdown-item:hover { background: #f3f4f6; }
+.remove-okr-dropdown .dropdown-item input[type="checkbox"] { accent-color: #dc2626; cursor: pointer; }
+.remove-okr-dropdown .dropdown-footer {
+  padding: 8px 12px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.remove-okr-dropdown .dropdown-footer button {
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.remove-okr-dropdown .btn-cancel-dd {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+}
+.remove-okr-dropdown .btn-cancel-dd:hover { background: #f3f4f6; }
+.remove-okr-dropdown .btn-delete-dd {
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: white;
+}
+.remove-okr-dropdown .btn-delete-dd:hover { background: #b91c1c; }
+.remove-okr-dropdown .btn-delete-dd:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .okr-row {
   display: grid;
@@ -888,23 +917,48 @@ function render() {
       dropdown.className = 'remove-okr-dropdown';
       const title = document.createElement('div');
       title.className = 'dropdown-title';
-      title.textContent = 'Select OKR to remove';
+      title.textContent = 'Select OKRs to remove';
       dropdown.appendChild(title);
+      const checkboxes = [];
       sec.items.forEach((itm, iIdx) => {
-        const item = document.createElement('button');
-        item.className = 'dropdown-item';
-        item.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>${itm.obj}</span>`;
-        item.onclick = (ev) => {
-          ev.stopPropagation();
-          if (confirm(`Delete objective "${itm.obj}"?`)) {
-            sec.items.splice(iIdx, 1);
-            save();
-            render();
-            toast('OKR deleted');
-          }
-        };
-        dropdown.appendChild(item);
+        const label = document.createElement('label');
+        label.className = 'dropdown-item';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.dataset.idx = iIdx;
+        cb.onchange = () => { delSelectedBtn.disabled = !checkboxes.some(c => c.checked); };
+        checkboxes.push(cb);
+        const span = document.createElement('span');
+        span.textContent = itm.obj;
+        label.appendChild(cb);
+        label.appendChild(span);
+        dropdown.appendChild(label);
       });
+      const footer = document.createElement('div');
+      footer.className = 'dropdown-footer';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.className = 'btn-cancel-dd';
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.onclick = (ev) => { ev.stopPropagation(); dropdown.remove(); };
+      const delSelectedBtn = document.createElement('button');
+      delSelectedBtn.className = 'btn-delete-dd';
+      delSelectedBtn.textContent = 'Delete selected';
+      delSelectedBtn.disabled = true;
+      delSelectedBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        const toRemove = checkboxes.filter(c => c.checked).map(c => parseInt(c.dataset.idx)).sort((a, b) => b - a);
+        if (!toRemove.length) return;
+        const count = toRemove.length;
+        if (confirm(`Delete ${count} OKR${count > 1 ? 's' : ''}?`)) {
+          toRemove.forEach(idx => sec.items.splice(idx, 1));
+          save();
+          render();
+          toast(`${count} OKR${count > 1 ? 's' : ''} deleted`);
+        }
+      };
+      footer.appendChild(cancelBtn);
+      footer.appendChild(delSelectedBtn);
+      dropdown.appendChild(footer);
       actions.appendChild(dropdown);
       const closeDropdown = (ev) => { if (!dropdown.contains(ev.target) && ev.target !== removeBtn) { dropdown.remove(); document.removeEventListener('click', closeDropdown); } };
       setTimeout(() => document.addEventListener('click', closeDropdown), 0);
