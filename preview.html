@@ -134,9 +134,8 @@ body {
 
 .okr-row .row-actions {
   position: absolute;
-  left: -32px;
-  top: 50%;
-  transform: translateY(-50%);
+  right: -30px;
+  top: 4px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -218,12 +217,22 @@ body {
 }
 .card-sol:hover .add-persona-btn { opacity: 1; }
 .add-persona-btn:hover { background: rgba(0,0,0,0.05); }
-.sol-delete-btn {
+.sol-actions {
   position: absolute;
-  top: 4px;
-  left: -10px;
-  width: 20px;
-  height: 20px;
+  right: -28px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 3;
+}
+.card-sol:hover .sol-actions { opacity: 1; }
+.sol-action-btn {
+  width: 22px;
+  height: 22px;
   border-radius: 4px;
   border: 1px solid #e5e7eb;
   background: white;
@@ -232,12 +241,12 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  opacity: 0;
   transition: all 0.15s;
-  z-index: 3;
+  padding: 0;
 }
-.card-sol:hover .sol-delete-btn { opacity: 1; }
-.sol-delete-btn:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+.sol-action-btn.sol-delete:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+.sol-action-btn.sol-comment:hover { background: #ede9fe; color: #7c3aed; border-color: #c4b5fd; }
+.sol-action-btn.has-comments { color: #7c3aed; border-color: #c4b5fd; }
 .persona-picker {
   position: absolute;
   bottom: 100%;
@@ -294,30 +303,29 @@ body {
 .section-header .editable:hover { border-bottom-color: rgba(255,255,255,0.6); }
 .section-header .editable:focus { box-shadow: 0 0 0 2px rgba(255,255,255,0.4); border-radius: 3px; border-bottom-color: transparent; }
 
-/* Comment system */
+/* Comment icon for obj/kr cards (non-solution) */
 .comment-icon {
   position: absolute;
-  bottom: 4px;
-  right: 6px;
-  width: auto;
-  height: auto;
-  padding: 2px 5px;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
   border-radius: 4px;
-  background: transparent;
-  border: none;
+  border: 1px solid #e5e7eb;
+  background: white;
   color: #9ca3af;
   font-size: 12px;
   display: flex;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
+  transition: all 0.15s;
   z-index: 2;
 }
-.card:hover .comment-icon { opacity: 0.7; }
-.comment-icon.has-comments { opacity: 1; color: #7c3aed; }
-.comment-icon:hover { opacity: 1; color: #6d28d9; }
+.card:hover .comment-icon { opacity: 1; }
+.comment-icon.has-comments { opacity: 1; color: #7c3aed; border-color: #c4b5fd; }
+.comment-icon:hover { color: #7c3aed; border-color: #c4b5fd; background: #ede9fe; }
 
 .comment-panel {
   position: absolute;
@@ -959,10 +967,21 @@ function render() {
         buildPersonaTags(personaRow, item, sIdx);
         solCard.appendChild(personaRow);
 
-        buildCommentIcon(commentKey(secIdx, itemIdx, `s${sIdx}`), solCard);
+        const solActions = document.createElement('div');
+        solActions.className = 'sol-actions';
+
+        const commentBtn = document.createElement('button');
+        commentBtn.className = 'sol-action-btn sol-comment';
+        const cKey = commentKey(secIdx, itemIdx, `s${sIdx}`);
+        const solComments = getComments(cKey);
+        if (solComments.length) commentBtn.classList.add('has-comments');
+        commentBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+        commentBtn.title = solComments.length ? `${solComments.length} note${solComments.length > 1 ? 's' : ''}` : 'Add note';
+        commentBtn.onclick = (e) => { e.stopPropagation(); toggleCommentPanel(cKey, solCard); };
+        solActions.appendChild(commentBtn);
 
         const delSolBtn = document.createElement('button');
-        delSolBtn.className = 'sol-delete-btn';
+        delSolBtn.className = 'sol-action-btn sol-delete';
         delSolBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
         delSolBtn.title = 'Remove solution';
         delSolBtn.onclick = (e) => {
@@ -973,7 +992,9 @@ function render() {
             render();
           }
         };
-        solCard.appendChild(delSolBtn);
+        solActions.appendChild(delSolBtn);
+
+        solCard.appendChild(solActions);
 
         solCol.appendChild(solCard);
       });
