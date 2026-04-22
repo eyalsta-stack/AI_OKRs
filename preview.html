@@ -102,6 +102,58 @@ body {
   justify-content: space-between;
 }
 
+.section-header .chevron {
+  cursor: pointer;
+  margin-right: 10px;
+  font-size: 14px;
+  transition: transform 0.2s;
+  display: inline-flex;
+  user-select: none;
+  flex-shrink: 0;
+}
+.section.collapsed .section-header .chevron { transform: rotate(-90deg); }
+.section.collapsed .section-header { margin-bottom: 8px; border-radius: 8px 8px 0 0; }
+.section.collapsed .section-actions { display: none !important; }
+
+.collapsed-summary {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+.section.collapsed .collapsed-summary { display: flex; }
+.section.collapsed .section-body { display: none; }
+
+.collapsed-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  font-size: 12px;
+  background: white;
+  border-bottom: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: background 0.1s;
+  gap: 10px;
+}
+.collapsed-row:last-child { border-bottom: none; }
+.collapsed-row:hover { background: #f9fafb; }
+.collapsed-row .cr-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--obj); border: 1px solid var(--obj-border); color: var(--obj-text);
+  font-size: 10px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.collapsed-row .cr-obj { font-weight: 600; color: var(--obj-text); flex: 1; min-width: 0; }
+.collapsed-row .cr-sep { color: #d1d5db; font-size: 16px; flex-shrink: 0; }
+.collapsed-row .cr-kr { color: var(--kr-text); flex: 1.2; min-width: 0; }
+.collapsed-row .cr-sol-count {
+  font-size: 10px; font-weight: 600; color: var(--sol-text);
+  background: var(--sol); border: 1px solid var(--sol-border);
+  padding: 2px 8px; border-radius: 10px; flex-shrink: 0;
+}
+
 .section-header .section-actions {
   display: flex;
   gap: 6px;
@@ -583,7 +635,8 @@ body {
 @media print {
   body { padding: 20px; }
   .card:hover { transform: none; }
-  .toolbar, .comment-icon, .section-actions, .add-sol-btn, .toast { display: none !important; }
+  .toolbar, .comment-icon, .section-actions, .add-sol-btn, .toast, .collapsed-summary, .chevron { display: none !important; }
+  .section-body { display: block !important; }
 }
 </style>
 </head>
@@ -603,6 +656,7 @@ body {
     <button class="btn-add-section" onclick="openAddSectionModal()">+ Add section</button>
     <button onclick="exportWithComments()">&#8595; Export with comments</button>
     <button id="toggleCommentsBtn" onclick="toggleAllComments()">Show all comments</button>
+    <button id="toggleCollapseBtn" onclick="toggleCollapseAll()">Collapse all</button>
   </div>
 </div>
 
@@ -891,6 +945,17 @@ function render() {
     const header = document.createElement('div');
     header.className = 'section-header';
 
+    const chevron = document.createElement('span');
+    chevron.className = 'chevron';
+    chevron.innerHTML = '&#9660;';
+    chevron.title = 'Collapse / Expand';
+    chevron.onclick = (e) => {
+      e.stopPropagation();
+      sectionDiv.classList.toggle('collapsed');
+      updateCollapseBtn();
+      if (!sectionDiv.classList.contains('collapsed')) requestAnimationFrame(updateConnectors);
+    };
+
     const titleSpan = document.createElement('span');
     titleSpan.className = 'editable';
     titleSpan.contentEditable = true;
@@ -978,9 +1043,29 @@ function render() {
     actions.appendChild(addBtn);
     actions.appendChild(removeBtn);
     actions.appendChild(delBtn);
-    header.appendChild(titleSpan);
+    const titleWrap = document.createElement('div');
+    titleWrap.style.cssText = 'display:flex;align-items:center;flex:1;min-width:0;';
+    titleWrap.appendChild(chevron);
+    titleWrap.appendChild(titleSpan);
+    header.appendChild(titleWrap);
     header.appendChild(actions);
     sectionDiv.appendChild(header);
+
+    const collapsedSummary = document.createElement('div');
+    collapsedSummary.className = 'collapsed-summary';
+    let summaryNum = globalNum;
+    sec.items.forEach((itm, iIdx) => {
+      summaryNum++;
+      const cr = document.createElement('div');
+      cr.className = 'collapsed-row';
+      cr.onclick = () => { sectionDiv.classList.remove('collapsed'); updateCollapseBtn(); requestAnimationFrame(updateConnectors); };
+      cr.innerHTML = `<span class="cr-num">${summaryNum}</span><span class="cr-obj">${escHtml(itm.obj)}</span><span class="cr-sep">›</span><span class="cr-kr">${escHtml(itm.kr)}</span><span class="cr-sol-count">${itm.s.length} solution${itm.s.length !== 1 ? 's' : ''}</span>`;
+      collapsedSummary.appendChild(cr);
+    });
+    sectionDiv.appendChild(collapsedSummary);
+
+    const sectionBody = document.createElement('div');
+    sectionBody.className = 'section-body';
 
     sec.items.forEach((item, itemIdx) => {
       globalNum++;
@@ -1096,9 +1181,10 @@ function render() {
       row.appendChild(krCard);
       row.appendChild(conn2);
       row.appendChild(solCol);
-      sectionDiv.appendChild(row);
+      sectionBody.appendChild(row);
     });
 
+    sectionDiv.appendChild(sectionBody);
     app.appendChild(sectionDiv);
   });
 
@@ -1195,6 +1281,25 @@ function toggleAllComments() {
     });
     btn.textContent = 'Hide all comments';
   }
+}
+
+function toggleCollapseAll() {
+  const sections = document.querySelectorAll('.section');
+  const anyExpanded = Array.from(sections).some(s => !s.classList.contains('collapsed'));
+  sections.forEach(s => {
+    if (anyExpanded) s.classList.add('collapsed');
+    else s.classList.remove('collapsed');
+  });
+  updateCollapseBtn();
+  if (!anyExpanded) requestAnimationFrame(updateConnectors);
+}
+
+function updateCollapseBtn() {
+  const btn = document.getElementById('toggleCollapseBtn');
+  if (!btn) return;
+  const sections = document.querySelectorAll('.section');
+  const anyExpanded = Array.from(sections).some(s => !s.classList.contains('collapsed'));
+  btn.textContent = anyExpanded ? 'Collapse all' : 'Expand all';
 }
 
 function generateMarkdown(includeComments) {
