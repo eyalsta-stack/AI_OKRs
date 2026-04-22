@@ -125,7 +125,7 @@ body {
 
 .okr-row {
   display: grid;
-  grid-template-columns: 240px 40px 280px 40px 1fr;
+  grid-template-columns: 240px 40px 280px 40px 1fr auto;
   align-items: stretch;
   margin-bottom: 14px;
   min-height: 90px;
@@ -133,14 +133,14 @@ body {
 }
 
 .okr-row .row-actions {
-  position: absolute;
-  right: -30px;
-  top: 4px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   opacity: 0;
   transition: opacity 0.15s;
+  align-self: start;
+  padding-top: 4px;
+  padding-left: 6px;
 }
 .okr-row:hover .row-actions { opacity: 1; }
 
@@ -180,8 +180,9 @@ body {
 
 .solutions-col { display: flex; flex-direction: column; gap: 6px; }
 
-.card-sol { background: var(--sol); border-color: var(--sol-border); color: var(--sol-text); font-size: 12px; flex: 1; min-height: 0; padding: 8px 12px; flex-wrap: wrap; }
-.card-sol .sol-content { display: flex; align-items: center; width: 100%; }
+.card-sol { background: var(--sol); border-color: var(--sol-border); color: var(--sol-text); font-size: 12px; flex: 1; min-height: 0; padding: 8px 12px; display: flex; flex-direction: row; align-items: center; }
+.sol-left { flex: 1; min-width: 0; }
+.card-sol .sol-content { display: flex; align-items: center; }
 .card-sol .sol-num { font-weight: 600; font-size: 10px; opacity: 0.6; margin-right: 5px; }
 .persona-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; width: 100%; }
 .persona-tag {
@@ -218,16 +219,14 @@ body {
 .card-sol:hover .add-persona-btn { opacity: 1; }
 .add-persona-btn:hover { background: rgba(0,0,0,0.05); }
 .sol-actions {
-  position: absolute;
-  right: -28px;
-  top: 50%;
-  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
   gap: 3px;
+  margin-left: auto;
+  padding-left: 6px;
   opacity: 0;
   transition: opacity 0.15s;
-  z-index: 3;
+  flex-shrink: 0;
 }
 .card-sol:hover .sol-actions { opacity: 1; }
 .sol-action-btn {
@@ -305,9 +304,6 @@ body {
 
 /* Comment icon for obj/kr cards (non-solution) */
 .comment-icon {
-  position: absolute;
-  top: -6px;
-  right: -6px;
   width: 20px;
   height: 20px;
   border-radius: 4px;
@@ -322,6 +318,8 @@ body {
   opacity: 0;
   transition: all 0.15s;
   z-index: 2;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 .card:hover .comment-icon { opacity: 1; }
 .comment-icon.has-comments { opacity: 1; color: #7c3aed; border-color: #c4b5fd; }
@@ -636,7 +634,7 @@ const DEFAULT_DATA = [
   },
 ];
 
-const DATA_VERSION = 5;
+const DATA_VERSION = 6;
 const storedVersion = parseInt(localStorage.getItem('okr-data-version') || '0');
 let DATA;
 if (storedVersion < DATA_VERSION) {
@@ -945,9 +943,9 @@ function render() {
         const sol = normalizeSol(solObj);
         const solCard = document.createElement('div');
         solCard.className = 'card card-sol';
-        solCard.style.position = 'relative';
-        solCard.style.flexDirection = 'column';
-        solCard.style.alignItems = 'flex-start';
+
+        const solLeft = document.createElement('div');
+        solLeft.className = 'sol-left';
 
         const contentRow = document.createElement('div');
         contentRow.className = 'sol-content';
@@ -960,12 +958,14 @@ function render() {
         solText.onblur = () => { item.s[sIdx] = normalizeSol(item.s[sIdx]); item.s[sIdx].text = solText.textContent.trim() || sol.text; save(); };
         solText.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); solText.blur(); } };
         contentRow.appendChild(solText);
-        solCard.appendChild(contentRow);
+        solLeft.appendChild(contentRow);
 
         const personaRow = document.createElement('div');
         personaRow.className = 'persona-row';
         buildPersonaTags(personaRow, item, sIdx);
-        solCard.appendChild(personaRow);
+        solLeft.appendChild(personaRow);
+
+        solCard.appendChild(solLeft);
 
         const solActions = document.createElement('div');
         solActions.className = 'sol-actions';
