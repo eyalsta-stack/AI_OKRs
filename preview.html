@@ -683,8 +683,8 @@ function buildCommentIcon(key, parentEl) {
   const comments = getComments(key);
   const icon = document.createElement('div');
   icon.className = 'comment-icon' + (comments.length ? ' has-comments' : '');
-  const pencilSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
-  icon.innerHTML = pencilSvg + (comments.length ? `<span style="font-size:10px;font-weight:600">${comments.length}</span>` : '');
+  const bubbleSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  icon.innerHTML = bubbleSvg + (comments.length ? `<span style="font-size:10px;font-weight:600">${comments.length}</span>` : '');
   icon.title = comments.length ? `${comments.length} note${comments.length > 1 ? 's' : ''}` : 'Add note';
   icon.onclick = (e) => {
     e.stopPropagation();
@@ -767,8 +767,8 @@ function updateCommentIcon(key, parentEl) {
   if (!icon) return;
   const comments = getComments(key);
   icon.className = 'comment-icon' + (comments.length ? ' has-comments' : '');
-  const pencilSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
-  icon.innerHTML = pencilSvg + (comments.length ? `<span style="font-size:10px;font-weight:600">${comments.length}</span>` : '');
+  const bubbleSvg = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  icon.innerHTML = bubbleSvg + (comments.length ? `<span style="font-size:10px;font-weight:600">${comments.length}</span>` : '');
   icon.title = comments.length ? `${comments.length} note${comments.length > 1 ? 's' : ''}` : 'Add note';
 }
 
@@ -975,7 +975,7 @@ function render() {
         const cKey = commentKey(secIdx, itemIdx, `s${sIdx}`);
         const solComments = getComments(cKey);
         if (solComments.length) commentBtn.classList.add('has-comments');
-        commentBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+        commentBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
         commentBtn.title = solComments.length ? `${solComments.length} note${solComments.length > 1 ? 's' : ''}` : 'Add note';
         commentBtn.onclick = (e) => { e.stopPropagation(); toggleCommentPanel(cKey, solCard); };
         solActions.appendChild(commentBtn);
