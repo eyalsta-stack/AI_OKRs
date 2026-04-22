@@ -122,43 +122,54 @@ body {
   transition: background 0.15s;
 }
 .section-actions button:hover { background: rgba(255,255,255,0.15); }
+.section-actions { position: relative; }
+.remove-okr-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  z-index: 50;
+  min-width: 240px;
+  overflow: hidden;
+}
+.remove-okr-dropdown .dropdown-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px 4px;
+}
+.remove-okr-dropdown .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+.remove-okr-dropdown .dropdown-item:hover { background: #fee2e2; color: #dc2626; }
+.remove-okr-dropdown .dropdown-item svg { flex-shrink: 0; }
 
 .okr-row {
   display: grid;
-  grid-template-columns: 240px 40px 280px 40px 1fr auto;
+  grid-template-columns: 240px 40px 280px 40px 1fr;
   align-items: stretch;
   margin-bottom: 14px;
   min-height: 90px;
   position: relative;
 }
-
-.okr-row .row-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 0.15s;
-  align-self: start;
-  padding-top: 4px;
-  padding-left: 6px;
-}
-.okr-row:hover .row-actions { opacity: 1; }
-
-.row-actions button {
-  width: 24px;
-  height: 24px;
-  border-radius: 5px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  color: #9ca3af;
-  cursor: pointer;
-  font-size: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s;
-}
-.row-actions button:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
 
 .card {
   border-radius: var(--card-radius);
@@ -543,7 +554,7 @@ body {
 @media print {
   body { padding: 20px; }
   .card:hover { transform: none; }
-  .toolbar, .comment-icon, .row-actions, .section-actions, .add-sol-btn, .toast { display: none !important; }
+  .toolbar, .comment-icon, .section-actions, .add-sol-btn, .toast { display: none !important; }
 }
 </style>
 </head>
@@ -866,6 +877,39 @@ function render() {
     addBtn.textContent = '+ Add OKR';
     addBtn.onclick = () => openAddOkrModal(secIdx);
 
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = '− Remove OKR';
+    removeBtn.onclick = (e) => {
+      e.stopPropagation();
+      const existing = actions.querySelector('.remove-okr-dropdown');
+      if (existing) { existing.remove(); return; }
+      document.querySelectorAll('.remove-okr-dropdown').forEach(d => d.remove());
+      const dropdown = document.createElement('div');
+      dropdown.className = 'remove-okr-dropdown';
+      const title = document.createElement('div');
+      title.className = 'dropdown-title';
+      title.textContent = 'Select OKR to remove';
+      dropdown.appendChild(title);
+      sec.items.forEach((itm, iIdx) => {
+        const item = document.createElement('button');
+        item.className = 'dropdown-item';
+        item.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span>${itm.obj}</span>`;
+        item.onclick = (ev) => {
+          ev.stopPropagation();
+          if (confirm(`Delete objective "${itm.obj}"?`)) {
+            sec.items.splice(iIdx, 1);
+            save();
+            render();
+            toast('OKR deleted');
+          }
+        };
+        dropdown.appendChild(item);
+      });
+      actions.appendChild(dropdown);
+      const closeDropdown = (ev) => { if (!dropdown.contains(ev.target) && ev.target !== removeBtn) { dropdown.remove(); document.removeEventListener('click', closeDropdown); } };
+      setTimeout(() => document.addEventListener('click', closeDropdown), 0);
+    };
+
     const delBtn = document.createElement('button');
     delBtn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-right:3px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete section';
     delBtn.onclick = () => {
@@ -878,6 +922,7 @@ function render() {
     };
 
     actions.appendChild(addBtn);
+    actions.appendChild(removeBtn);
     actions.appendChild(delBtn);
     header.appendChild(titleSpan);
     header.appendChild(actions);
@@ -887,21 +932,6 @@ function render() {
       globalNum++;
       const row = document.createElement('div');
       row.className = 'okr-row';
-
-      const rowActions = document.createElement('div');
-      rowActions.className = 'row-actions';
-      const deleteRowBtn = document.createElement('button');
-      deleteRowBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
-      deleteRowBtn.title = 'Delete this OKR';
-      deleteRowBtn.onclick = () => {
-        if (confirm(`Delete objective "${item.obj}"?`)) {
-          sec.items.splice(itemIdx, 1);
-          save();
-          render();
-          toast('OKR deleted');
-        }
-      };
-      rowActions.appendChild(deleteRowBtn);
 
       const objCard = document.createElement('div');
       objCard.className = 'card card-obj';
@@ -1012,7 +1042,6 @@ function render() {
       row.appendChild(krCard);
       row.appendChild(conn2);
       row.appendChild(solCol);
-      row.appendChild(rowActions);
       sectionDiv.appendChild(row);
     });
 
