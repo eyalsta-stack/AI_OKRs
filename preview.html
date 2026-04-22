@@ -175,7 +175,9 @@ body {
 .card:hover { transform: translateY(-1px); }
 
 .card-obj { background: var(--obj); border-color: var(--obj-border); color: var(--obj-text); font-weight: 600; font-size: 13px; }
+.card-obj .editable { flex: 1; min-width: 0; }
 .card-kr { background: var(--kr); border-color: var(--kr-border); color: var(--kr-text); font-size: 12.5px; }
+.card-kr > div { flex: 1; min-width: 0; }
 .card-kr .kr-label { font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.7; display: block; margin-bottom: 3px; }
 
 .solutions-col { display: flex; flex-direction: column; gap: 6px; }
@@ -634,7 +636,7 @@ const DEFAULT_DATA = [
   },
 ];
 
-const DATA_VERSION = 6;
+const DATA_VERSION = 7;
 const storedVersion = parseInt(localStorage.getItem('okr-data-version') || '0');
 let DATA;
 if (storedVersion < DATA_VERSION) {
@@ -899,7 +901,6 @@ function render() {
         }
       };
       rowActions.appendChild(deleteRowBtn);
-      row.appendChild(rowActions);
 
       const objCard = document.createElement('div');
       objCard.className = 'card card-obj';
@@ -1015,6 +1016,7 @@ function render() {
       row.appendChild(krCard);
       row.appendChild(conn2);
       row.appendChild(solCol);
+      row.appendChild(rowActions);
       sectionDiv.appendChild(row);
     });
 
