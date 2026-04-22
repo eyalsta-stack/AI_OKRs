@@ -10,7 +10,7 @@
 
 ### Objective 1: Break down stories faster
 
-**Key Result:** Decrease time sign-off time to sprint-ready stories
+**Key Result:** Decrease time to sign-off time to sprint-ready stories
 
 | # | Solution | Personas |
 |---|----------|----------|
@@ -93,7 +93,7 @@
 
 ---
 
-## 3. Definition of done & release Quality
+## 3. Definition of done & release
 
 ### Objective 8: Act on demo feedback quickly
 
