@@ -100,17 +100,25 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  cursor: pointer;
 }
 
 .section-header .chevron {
-  cursor: pointer;
-  margin-right: 10px;
-  font-size: 14px;
-  transition: transform 0.2s;
+  margin-right: 12px;
+  font-size: 10px;
+  transition: transform 0.25s;
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   user-select: none;
   flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.8);
 }
+.section-header:hover .chevron { background: rgba(255,255,255,0.22); color: white; }
 .section.collapsed .section-header .chevron { transform: rotate(-90deg); }
 .section.collapsed .section-header { margin-bottom: 8px; border-radius: 8px 8px 0 0; }
 .section.collapsed .section-actions { display: none !important; }
@@ -948,13 +956,6 @@ function render() {
     const chevron = document.createElement('span');
     chevron.className = 'chevron';
     chevron.innerHTML = '&#9660;';
-    chevron.title = 'Collapse / Expand';
-    chevron.onclick = (e) => {
-      e.stopPropagation();
-      sectionDiv.classList.toggle('collapsed');
-      updateCollapseBtn();
-      if (!sectionDiv.classList.contains('collapsed')) requestAnimationFrame(updateConnectors);
-    };
 
     const titleSpan = document.createElement('span');
     titleSpan.className = 'editable';
@@ -1049,6 +1050,12 @@ function render() {
     titleWrap.appendChild(titleSpan);
     header.appendChild(titleWrap);
     header.appendChild(actions);
+    header.onclick = (e) => {
+      if (e.target.closest('.section-actions') || e.target.closest('.editable') || e.target.closest('.remove-okr-dropdown')) return;
+      sectionDiv.classList.toggle('collapsed');
+      updateCollapseBtn();
+      if (!sectionDiv.classList.contains('collapsed')) requestAnimationFrame(updateConnectors);
+    };
     sectionDiv.appendChild(header);
 
     const collapsedSummary = document.createElement('div');
