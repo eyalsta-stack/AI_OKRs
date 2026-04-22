@@ -218,6 +218,28 @@ body {
 }
 .card-sol:hover .add-persona-btn { opacity: 1; }
 .add-persona-btn:hover { background: rgba(0,0,0,0.05); }
+.sol-delete-btn {
+  position: absolute;
+  top: 3px;
+  left: -8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid #fca5a5;
+  background: white;
+  color: #dc2626;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 3;
+}
+.card-sol:hover .sol-delete-btn { opacity: 1; }
+.sol-delete-btn:hover { background: #fee2e2; }
 .persona-picker {
   position: absolute;
   bottom: 100%;
@@ -939,18 +961,17 @@ function render() {
         buildCommentIcon(commentKey(secIdx, itemIdx, `s${sIdx}`), solCard);
 
         const delSolBtn = document.createElement('button');
-        delSolBtn.className = 'comment-delete';
-        delSolBtn.style.cssText = 'position:absolute;top:4px;right:4px;opacity:0;font-size:14px;';
+        delSolBtn.className = 'sol-delete-btn';
         delSolBtn.innerHTML = '&times;';
         delSolBtn.title = 'Remove solution';
         delSolBtn.onclick = (e) => {
           e.stopPropagation();
-          item.s.splice(sIdx, 1);
-          save();
-          render();
+          if (confirm('Remove this solution?')) {
+            item.s.splice(sIdx, 1);
+            save();
+            render();
+          }
         };
-        solCard.onmouseenter = () => delSolBtn.style.opacity = '1';
-        solCard.onmouseleave = () => delSolBtn.style.opacity = '0';
         solCard.appendChild(delSolBtn);
 
         solCol.appendChild(solCard);
