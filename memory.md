@@ -16,8 +16,7 @@
 |---|----------|----------|
 | S1 | Standard story-splitting template | PM, Tech Lead |
 | S2 | Design + dev breakdown workshop (meeting) | PM, Design, Dev |
-| S3 | AI generated stories from design specs | PM, Design |
-| S4 | AI auto-splits epics into stories from design files | PM, Design |
+| S3 | AI generated stories from design/doc specs | PM, Design |
 
 ---
 
