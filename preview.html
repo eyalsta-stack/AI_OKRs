@@ -274,7 +274,10 @@ body {
 
 .card:hover { transform: translateY(-1px); }
 
-.card-obj { background: var(--obj); border-color: var(--obj-border); color: var(--obj-text); font-weight: 600; font-size: 13px; padding-right: 32px; }
+.card-obj { background: var(--obj); border-color: var(--obj-border); color: var(--obj-text); font-weight: 600; font-size: 13px; padding-right: 32px; flex-direction: column; align-items: stretch; }
+.card-obj .obj-top { display: flex; align-items: center; }
+.pain-label { font-size: 10px; font-weight: 500; color: #e11d48; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 4px; padding: 2px 7px; margin-bottom: 5px; line-height: 1.4; }
+.pain-label .pain-icon { margin-right: 4px; }
 .card-kr { background: var(--kr); border-color: var(--kr-border); color: var(--kr-text); font-size: 12.5px; padding-right: 32px; }
 .card-kr .kr-label { font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.7; display: block; margin-bottom: 3px; }
 
@@ -683,23 +686,23 @@ const DEFAULT_DATA = [
   {
     section: "Sprint planning & scoping",
     items: [
-      { obj: "Break down stories faster", kr: "Decrease time sign-off time to sprint-ready stories", s: [
+      { pain: "Stories arrive too large and vague, causing scope creep", obj: "Break down stories faster", kr: "Decrease time sign-off time to sprint-ready stories", s: [
         { text: "Standard story-splitting template", personas: ["PM", "Tech Lead"] },
         { text: "Design + dev breakdown workshop (meeting)", personas: ["PM", "Design", "Dev"] },
         { text: "AI generated stories from design specs", personas: ["PM", "Design"] },
         { text: "AI auto-splits epics into stories from design files", personas: ["PM", "Design"] },
       ]},
-      { obj: "Match dev output to design intent", kr: "60% fewer design-rework tickets per quarter", s: [
+      { pain: "Dev output doesn't match design intent, causing rework", obj: "Match dev output to design intent", kr: "60% fewer design-rework tickets per quarter", s: [
         { text: "Handoff specs with edge-case notes", personas: ["Design", "Dev"] },
         { text: "Shared checklist before sprint entry", personas: ["Design", "Dev", "PM"] },
         { text: "Mid-sprint design or demo check-ins", personas: ["Design", "Dev"] },
         { text: "AI matching between deliverable and design spec and flag mismatches", personas: ["Dev", "Design", "QA"] },
       ]},
-      { obj: "Write clear acceptance criteria", kr: "100% of stories have QA-reviewed testable AC", s: [
+      { pain: "Acceptance criteria are unclear or untestable", obj: "Write clear acceptance criteria", kr: "100% of stories have QA-reviewed testable AC", s: [
         { text: "QA signs off AC in refinement", personas: ["QA", "PM"] },
         { text: "AI drafts AC from story description + design spec", personas: ["PM", "QA"] },
       ]},
-      { obj: "Speed up refinement meetings", kr: "Improve Refinement/Grooming meetings efficiency", s: [
+      { pain: "Refinement meetings are long and unproductive", obj: "Speed up refinement meetings", kr: "Improve Refinement/Grooming meetings efficiency", s: [
         { text: "Clear agenda and review of task by all team members before the meeting", personas: ["PM", "Dev", "QA"] },
         { text: "AI flagging of potential problems before refinement", personas: ["PM", "Tech Lead"] },
       ]},
@@ -708,17 +711,17 @@ const DEFAULT_DATA = [
   {
     section: "Execution & delivery risks",
     items: [
-      { obj: "Find dependencies early", kr: "Zero stories blocked by surprise dependencies", s: [
+      { pain: "Hidden dependencies block stories mid-sprint", obj: "Find dependencies early", kr: "Zero stories blocked by surprise dependencies", s: [
         { text: "API + vendor readiness tracker", personas: ["Tech Lead", "PM"] },
         { text: "AI scans stories and maps dependencies", personas: ["Tech Lead", "Dev"] },
         { text: "AI alerts for potential 3rd party dependency \u2013 missing capability, subscriptions & offering, etc.", personas: ["Tech Lead", "PM"] },
       ]},
-      { obj: "Estimate more accurately", kr: "Improve estimation accuracy", s: [
+      { pain: "Estimates are frequently off, leading to missed commitments", obj: "Estimate more accurately", kr: "Improve estimation accuracy", s: [
         { text: "Create estimation index as benchmark", personas: ["Tech Lead", "Dev"] },
         { text: "Quarterly estimation retros", personas: ["PM", "Tech Lead", "Dev"] },
         { text: "AI suggests estimates based on similar past stories", personas: ["PM", "Dev", "Tech Lead"] },
       ]},
-      { obj: "Keep sprint goals on track", kr: "Increase sprint goal completion", s: [
+      { pain: "Unplanned work derails sprint goals", obj: "Keep sprint goals on track", kr: "Increase sprint goal completion", s: [
         { text: "AI estimator for intake showing trade-offs for unexpected tasks", personas: ["PM", "Tech Lead"] },
         { text: "AI shows impact analysis when new work enters sprint", personas: ["PM", "Tech Lead"] },
       ]},
@@ -727,11 +730,11 @@ const DEFAULT_DATA = [
   {
     section: "Definition of done & release",
     items: [
-      { obj: "Act on demo feedback quickly", kr: "All demo feedback triaged within one sprint", s: [
+      { pain: "Demo feedback gets lost and isn't acted on", obj: "Act on demo feedback quickly", kr: "All demo feedback triaged within one sprint", s: [
         { text: "Recorded demos + async summaries", personas: ["PM", "Stakeholder"] },
         { text: "AI auto-summarizes demo recordings with action items, time estimator, and summary", personas: ["PM", "Stakeholder", "Dev"] },
       ]},
-      { obj: "Smooth out releases", kr: "Near-zero blockers on release day", s: [
+      { pain: "Release day is chaotic with last-minute blockers", obj: "Smooth out releases", kr: "Near-zero blockers on release day", s: [
         { text: "AI assistant for release checklist (code, content, training, deployment)", personas: ["Tech Lead", "Dev", "PM"] },
         { text: "AI validates release readiness across all checklist items", personas: ["Tech Lead", "Dev", "PM"] },
       ]},
@@ -739,7 +742,7 @@ const DEFAULT_DATA = [
   },
 ];
 
-const DATA_VERSION = 8;
+const DATA_VERSION = 9;
 const storedVersion = parseInt(localStorage.getItem('okr-data-version') || '0');
 let DATA;
 if (storedVersion < DATA_VERSION) {
@@ -1066,7 +1069,8 @@ function render() {
       const cr = document.createElement('div');
       cr.className = 'collapsed-row';
       cr.onclick = () => { sectionDiv.classList.remove('collapsed'); updateCollapseBtn(); requestAnimationFrame(updateConnectors); };
-      cr.innerHTML = `<span class="cr-num">${summaryNum}</span><span class="cr-obj">${escHtml(itm.obj)}</span><span class="cr-sep">›</span><span class="cr-kr">${escHtml(itm.kr)}</span><span class="cr-sol-count">${itm.s.length} solution${itm.s.length !== 1 ? 's' : ''}</span>`;
+      const painBit = itm.pain ? `<span style="color:#e11d48;font-size:10px;margin-right:4px;">⚡</span>` : '';
+      cr.innerHTML = `<span class="cr-num">${summaryNum}</span>${painBit}<span class="cr-obj">${escHtml(itm.obj)}</span><span class="cr-sep">›</span><span class="cr-kr">${escHtml(itm.kr)}</span><span class="cr-sol-count">${itm.s.length} solution${itm.s.length !== 1 ? 's' : ''}</span>`;
       collapsedSummary.appendChild(cr);
     });
     sectionDiv.appendChild(collapsedSummary);
@@ -1082,7 +1086,25 @@ function render() {
       const objCard = document.createElement('div');
       objCard.className = 'card card-obj';
       objCard.style.position = 'relative';
-      objCard.innerHTML = `<span class="obj-number">${globalNum}</span>`;
+
+      if (item.pain) {
+        const painEl = document.createElement('div');
+        painEl.className = 'pain-label';
+        const painText = document.createElement('span');
+        painText.className = 'editable';
+        painText.contentEditable = true;
+        painText.textContent = item.pain;
+        painText.dataset.placeholder = 'Pain point';
+        painText.onblur = () => { item.pain = painText.textContent.trim() || item.pain; save(); };
+        painText.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); painText.blur(); } };
+        painEl.innerHTML = '<span class="pain-icon">⚡</span>';
+        painEl.appendChild(painText);
+        objCard.appendChild(painEl);
+      }
+
+      const objTop = document.createElement('div');
+      objTop.className = 'obj-top';
+      objTop.innerHTML = `<span class="obj-number">${globalNum}</span>`;
       const objText = document.createElement('span');
       objText.className = 'editable';
       objText.contentEditable = true;
@@ -1090,7 +1112,8 @@ function render() {
       objText.dataset.placeholder = 'Objective';
       objText.onblur = () => { item.obj = objText.textContent.trim() || item.obj; save(); };
       objText.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); objText.blur(); } };
-      objCard.appendChild(objText);
+      objTop.appendChild(objText);
+      objCard.appendChild(objTop);
       buildCommentIcon(commentKey(secIdx, itemIdx, 'obj'), objCard);
 
       const conn1 = document.createElement('div');
@@ -1233,6 +1256,8 @@ function doAddSection() {
 function openAddOkrModal(secIdx) {
   openModal(`
     <h3>Add OKR to "${escHtml(DATA[secIdx].section)}"</h3>
+    <label>Pain point</label>
+    <input id="newPain" placeholder="What problem are you trying to solve?" />
     <label>Objective</label>
     <input id="newObj" placeholder="What do you want to achieve?" />
     <label>Key Result</label>
@@ -1247,12 +1272,13 @@ function openAddOkrModal(secIdx) {
 }
 
 function doAddOkr(secIdx) {
+  const pain = document.getElementById('newPain').value.trim();
   const obj = document.getElementById('newObj').value.trim();
   const kr = document.getElementById('newKr').value.trim();
   const sols = document.getElementById('newSols').value.split('\n').map(s => s.trim()).filter(Boolean);
   if (!obj || !kr) return toast('Objective and Key Result are required');
   if (sols.length === 0) sols.push('Define solution');
-  DATA[secIdx].items.push({ obj, kr, s: sols.map(t => ({ text: t, personas: [] })) });
+  DATA[secIdx].items.push({ pain: pain || '', obj, kr, s: sols.map(t => ({ text: t, personas: [] })) });
   save();
   render();
   closeModal();
@@ -1320,6 +1346,7 @@ function generateMarkdown(includeComments) {
 
     sec.items.forEach((item, itemIdx) => {
       globalNum++;
+      if (item.pain) md += `**⚡ Pain point:** ${item.pain}\n\n`;
       md += `### Objective ${globalNum}: ${item.obj}\n\n`;
 
       if (includeComments) {
